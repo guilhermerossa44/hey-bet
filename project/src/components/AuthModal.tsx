@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Eye, EyeOff, User, Mail, Phone, Calendar, CreditCard, Shield, AlertTriangle } from 'lucide-react';
+import { X, Eye, EyeOff, User, Mail, Phone, Calendar, CreditCard, Shield, AlertTriangle, Camera } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface AuthModalProps {
@@ -18,7 +18,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     name: '',
     cpf: '',
     phone: '',
-    birthDate: ''
+    birthDate: '',
+    profileImage: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [ageVerified, setAgeVerified] = useState(false);
@@ -97,7 +98,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
           name: '',
           cpf: '',
           phone: '',
-          birthDate: ''
+          birthDate: '',
+          profileImage: ''
         });
         setMode('login');
         setAgeVerified(false);
@@ -122,6 +124,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
       .replace(/(\d{2})(\d)/, '($1) $2')
       .replace(/(\d{5})(\d)/, '$1-$2')
       .replace(/(-\d{4})\d+?$/, '$1');
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFormData({ ...formData, profileImage: event.target?.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   if (mode === 'age-verification') {
@@ -195,22 +208,47 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (
-            <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">
-                Nome Completo
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
-                  placeholder="Seu nome completo"
-                />
+            <>
+              {/* Profile Image */}
+              <div className="text-center mb-6">
+                <div className="relative inline-block">
+                  <div className="w-24 h-24 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center border-4 border-orange-500/50 overflow-hidden">
+                    {formData.profileImage ? (
+                      <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-12 h-12 text-gray-400" />
+                    )}
+                  </div>
+                  <label className="absolute bottom-0 right-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-orange-600 transition-colors">
+                    <Camera className="w-4 h-4 text-white" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                <p className="text-gray-400 text-sm mt-2">Adicionar foto do perfil</p>
               </div>
-              {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
-            </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">
+                  Nome Completo
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+                    placeholder="Seu nome completo"
+                  />
+                </div>
+                {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
+              </div>
+            </>
           )}
 
           <div>

@@ -7,6 +7,7 @@ interface User {
   cpf: string;
   phone: string;
   birthDate: string;
+  profileImage?: string;
   isVerified: boolean;
   createdAt: Date;
 }
@@ -88,6 +89,7 @@ interface RegisterData {
   cpf: string;
   phone: string;
   birthDate: string;
+  profileImage?: string;
 }
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -113,21 +115,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock user data - in real app, this would come from API
-      const user: User = {
-        id: '1',
-        email,
-        name: 'Usuário Hey Bet',
-        cpf: '123.456.789-00',
-        phone: '(11) 99999-9999',
-        birthDate: '1990-01-01',
-        isVerified: true,
-        createdAt: new Date()
-      };
+      // Check if user exists in localStorage (for demo purposes)
+      const existingUsers = JSON.parse(localStorage.getItem('heybet_users') || '[]');
+      const user = existingUsers.find((u: any) => u.email === email && u.password === password);
       
-      localStorage.setItem('heybet_user', JSON.stringify(user));
-      dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-      return true;
+      if (user) {
+        const { password: _, ...userWithoutPassword } = user;
+        localStorage.setItem('heybet_user', JSON.stringify(userWithoutPassword));
+        dispatch({ type: 'LOGIN_SUCCESS', payload: userWithoutPassword });
+        return true;
+      } else {
+        // Create a default user for demo
+        const defaultUser: User = {
+          id: '1',
+          email,
+          name: 'Usuário Hey Bet',
+          cpf: '123.456.789-00',
+          phone: '(11) 99999-9999',
+          birthDate: '1990-01-01',
+          isVerified: true,
+          createdAt: new Date()
+        };
+        
+        localStorage.setItem('heybet_user', JSON.stringify(defaultUser));
+        dispatch({ type: 'LOGIN_SUCCESS', payload: defaultUser });
+        return true;
+      }
     } catch (error) {
       dispatch({ type: 'LOGIN_FAILURE' });
       return false;
@@ -148,9 +161,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         cpf: userData.cpf,
         phone: userData.phone,
         birthDate: userData.birthDate,
+        profileImage: userData.profileImage,
         isVerified: false,
         createdAt: new Date()
       };
+      
+      // Store user in localStorage (for demo purposes)
+      const existingUsers = JSON.parse(localStorage.getItem('heybet_users') || '[]');
+      existingUsers.push({ ...user, password: userData.password });
+      localStorage.setItem('heybet_users', JSON.stringify(existingUsers));
       
       localStorage.setItem('heybet_user', JSON.stringify(user));
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Coins, User, History, Home, DollarSign, Menu, Target, LogOut, LogIn } from 'lucide-react';
+import { Coins, User, History, Home, DollarSign, Menu, LogOut, LogIn, Gamepad2 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './AuthModal';
@@ -61,15 +61,15 @@ const Header = () => {
                   <span className="font-medium">Double</span>
                 </Link>
                 <Link
-                  to="/slots"
+                  to="/games"
                   className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 ${
-                    isActive('/slots') 
+                    isActive('/games') 
                       ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg' 
                       : 'text-gray-300 hover:text-white hover:bg-gray-800/50'
                   }`}
                 >
-                  <Target className="w-4 h-4" />
-                  <span className="font-medium">Slots</span>
+                  <Gamepad2 className="w-4 h-4" />
+                  <span className="font-medium">Jogos</span>
                 </Link>
                 <Link
                   to="/history"
@@ -106,7 +106,11 @@ const Header = () => {
                     </div>
                   </div>
                   <div className="hidden md:flex items-center space-x-2 text-gray-300">
-                    <User className="w-4 h-4" />
+                    {user?.profileImage ? (
+                      <img src={user.profileImage} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <User className="w-4 h-4" />
+                    )}
                     <span className="text-sm">{user?.name}</span>
                   </div>
                   <button

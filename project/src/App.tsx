@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
 import Betting from './pages/Betting';
-import Slots from './pages/Slots';
+import Games from './pages/Games';
 import History from './pages/History';
 import Profile from './pages/Profile';
 import { GameProvider } from './context/GameContext';
@@ -19,7 +19,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/betting" element={<Betting />} />
-              <Route path="/slots" element={<Slots />} />
+              <Route path="/games" element={<Games />} />
               <Route path="/history" element={<History />} />
               <Route path="/profile" element={<Profile />} />
             </Routes>
