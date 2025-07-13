@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Wallet, TrendingUp, Award, Calendar, Crown, Star, Target, Plus, Minus, CreditCard, Smartphone } from 'lucide-react';
+import { User, Wallet, TrendingUp, Award, Calendar, Crown, Star, Target, Plus, Minus, CreditCard, Smartphone, Edit, Camera, Save, X } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
 import PaymentModal from '../components/PaymentModal';
@@ -7,10 +7,15 @@ import AuthModal from '../components/AuthModal';
 
 const Profile = () => {
   const { balance, gameStats, bets } = useGame();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, updateUser } = useAuth();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentType, setPaymentType] = useState<'deposit' | 'withdraw'>('deposit');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    name: user?.name || '',
+    profileImage: user?.profileImage || ''
+  });
 
   if (!isAuthenticated) {
     return (
@@ -69,6 +74,33 @@ const Profile = () => {
     setShowPaymentModal(true);
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setEditData({ ...editData, profileImage: event.target?.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveChanges = () => {
+    updateUser({
+      name: editData.name,
+      profileImage: editData.profileImage
+    });
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditData({
+      name: user?.name || '',
+      profileImage: user?.profileImage || ''
+    });
+    setIsEditing(false);
+  };
+
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-8">
@@ -87,24 +119,81 @@ const Profile = () => {
             <div className="bg-gradient-to-br from-orange-500/20 to-red-600/20 backdrop-blur-sm p-8 rounded-3xl border border-orange-500/30 mb-8">
               <div className="flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-8">
                 <div className="relative">
-                  <div className="w-32 h-32 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center border-4 border-orange-500/50">
-                    <User className="w-16 h-16 text-white" />
+                  <div className="w-32 h-32 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center border-4 border-orange-500/50 overflow-hidden">
+                    {(isEditing ? editData.profileImage : user?.profileImage) ? (
+                      <img 
+                        src={isEditing ? editData.profileImage : user?.profileImage} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover" 
+                      />
+                    ) : (
+                      <User className="w-16 h-16 text-white" />
+                    )}
                   </div>
                   <div className={`absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-r ${playerLevel.color} rounded-full flex items-center justify-center border-2 border-black`}>
                     <playerLevel.icon className="w-6 h-6 text-white" />
                   </div>
+                  {isEditing && (
+                    <label className="absolute bottom-0 right-0 w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-orange-600 transition-colors border-2 border-black">
+                      <Camera className="w-5 h-5 text-white" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
                 </div>
                 
                 <div className="text-center md:text-left flex-1">
-                  <h2 className="text-4xl font-black text-white mb-2">{user?.name}</h2>
-                  <div className={`inline-flex items-center space-x-2 bg-gradient-to-r ${playerLevel.color} px-4 py-2 rounded-full mb-4`}>
-                    <playerLevel.icon className="w-4 h-4 text-white" />
-                    <span className="text-white font-bold text-sm">{playerLevel.name}</span>
-                  </div>
-                  <div className="flex items-center justify-center md:justify-start space-x-2 text-orange-300">
-                    <Calendar className="w-4 h-4" />
-                    <span>Membro desde {memberSince.toLocaleDateString('pt-BR')}</span>
-                  </div>
+                  {isEditing ? (
+                    <div className="space-y-4">
+                      <input
+                        type="text"
+                        value={editData.name}
+                        onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                        className="text-4xl font-black text-white bg-transparent border-b-2 border-orange-500 focus:outline-none focus:border-orange-400 text-center md:text-left"
+                        placeholder="Seu nome"
+                      />
+                      <div className="flex space-x-4 justify-center md:justify-start">
+                        <button
+                          onClick={handleSaveChanges}
+                          className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-xl font-bold transition-all duration-300"
+                        >
+                          <Save className="w-4 h-4" />
+                          <span>SALVAR</span>
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="flex items-center space-x-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-4 py-2 rounded-xl font-bold transition-all duration-300"
+                        >
+                          <X className="w-4 h-4" />
+                          <span>CANCELAR</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center space-x-4 mb-2">
+                        <h2 className="text-4xl font-black text-white">{user?.name}</h2>
+                        <button
+                          onClick={() => setIsEditing(true)}
+                          className="text-orange-400 hover:text-orange-300 transition-colors"
+                        >
+                          <Edit className="w-6 h-6" />
+                        </button>
+                      </div>
+                      <div className={`inline-flex items-center space-x-2 bg-gradient-to-r ${playerLevel.color} px-4 py-2 rounded-full mb-4`}>
+                        <playerLevel.icon className="w-4 h-4 text-white" />
+                        <span className="text-white font-bold text-sm">{playerLevel.name}</span>
+                      </div>
+                      <div className="flex items-center justify-center md:justify-start space-x-2 text-orange-300">
+                        <Calendar className="w-4 h-4" />
+                        <span>Membro desde {memberSince.toLocaleDateString('pt-BR')}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
                 
                 <div className="text-center">
@@ -145,6 +234,20 @@ const Profile = () => {
                   <span>PIX</span>
                 </h3>
                 <p className="text-gray-400 mb-4">Depósitos e saques instantâneos via PIX</p>
+                <div className="space-y-2 text-sm text-gray-300 mb-4">
+                  <div className="flex justify-between">
+                    <span>Depósito mínimo:</span>
+                    <span className="text-green-400 font-bold">R$ 10</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Saque mínimo:</span>
+                    <span className="text-blue-400 font-bold">R$ 50</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Taxa:</span>
+                    <span className="text-green-400 font-bold">Grátis</span>
+                  </div>
+                </div>
                 <div className="flex space-x-3">
                   <button
                     onClick={() => handlePayment('deposit')}
@@ -167,6 +270,20 @@ const Profile = () => {
                   <span>CARTÃO</span>
                 </h3>
                 <p className="text-gray-400 mb-4">Depósitos com cartão de crédito</p>
+                <div className="space-y-2 text-sm text-gray-300 mb-4">
+                  <div className="flex justify-between">
+                    <span>Depósito mínimo:</span>
+                    <span className="text-blue-400 font-bold">R$ 20</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Depósito máximo:</span>
+                    <span className="text-blue-400 font-bold">R$ 5.000</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Taxa:</span>
+                    <span className="text-yellow-400 font-bold">3,5%</span>
+                  </div>
+                </div>
                 <button
                   onClick={() => handlePayment('deposit')}
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 rounded-xl font-bold transition-all duration-300"
